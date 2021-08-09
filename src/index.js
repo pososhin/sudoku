@@ -4,8 +4,8 @@ class Pixel {
     this.impssbl = []
     this.parent = [];
   }
-  setParent = (p,r,c) => {
-    this.parent.push({p:p,r:r,c:c});
+  setParent = (p, r, c) => {
+    this.parent.push({ p: p, r: r, c: c });
   };
   getNum = () => Number(this.number);
 
@@ -16,22 +16,22 @@ class Pixel {
       throw new Error('WTF!!!');
     }
     if (!this.number && n) {
-      for(let i in this.parent) if(!this.parent[i].p.check(n)) {
+      for (let i in this.parent) if (!this.parent[i].p.check(n)) {
         throw new Error('Ilegat insert');
       }
     }
     this.impssbl = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    .slice(0, n - 1)
-    .concat([1, 2, 3, 4, 5, 6, 7, 8, 9].slice(n));
+      .slice(0, n - 1)
+      .concat([1, 2, 3, 4, 5, 6, 7, 8, 9].slice(n));
     this.number = n;
     this.parent.forEach((item, i, arr) => arr[i].p.impossible(n));
     return n;
   };
-  impossible_normalize = ()=>{
-    let r={};
-    for(let i in this.impssbl) r[this.impssbl[i]]=1;
+  impossible_normalize = () => {
+    let r = {};
+    for (let i in this.impssbl) r[this.impssbl[i]] = 1;
     this.impssbl = [];
-    for(let i in r) this.impssbl.push(r);
+    for (let i in r) this.impssbl.push(r);
   }
   impossible = (ns) => {
     let num = Number(ns);
@@ -68,7 +68,7 @@ class Vector {
   check = (num) => {
     for (let i in this.vector) {
       let n = this.vector[i].getNum();
-      if(n==num) return false;
+      if (n == num) return false;
     }
     return true;
   }
@@ -89,14 +89,14 @@ class Vector {
   }
   check_possible = () => {
     let h = {};
-    for (let j = 0; j < 9; j++){
-      let p=this.getPixel(j).possible();
-      for(let i in p) h[p[i]]=1
+    for (let j = 0; j < 9; j++) {
+      let p = this.getPixel(j).possible();
+      for (let i in p) h[p[i]] = 1
     }
-    return (Object.keys(h).length==9);
+    return (Object.keys(h).length == 9);
   }
 
-  aanalyze = () =>{
+  aanalyze = () => {
     let cnt = {}
     for (let j = 0; j < 9; j++) {
       if (!this.getPixel(j).getNum()) {
@@ -108,7 +108,7 @@ class Vector {
       }
     }
     return cnt;
-  } 
+  }
 
 }
 const _range2 = (i, j) => [Math.floor(i / 3) * 3 + Math.floor(j / 3), (i % 3) * 3 + j % 3];
@@ -117,7 +117,7 @@ class Matrix {
     this.vectors = m;
     for (let i in this.vectors)
       for (let j in this.vectors[i].getVector())
-        this.vectors[i].getPixel(j).setParent(this.vectors[i],i,j);
+        this.vectors[i].getPixel(j).setParent(this.vectors[i], i, j);
   }
   get = (r, c) => this.vectors[r].getPixel(c);
   row = (r) => this.vectors[r];
@@ -129,14 +129,14 @@ class Matrix {
       }
     }
   }
-  check = (b)=>{
-    for(let i in this.vectors)
-      if(!this.vectors[i].check(b)) return false;
-      return true;
+  check = (b) => {
+    for (let i in this.vectors)
+      if (!this.vectors[i].check(b)) return false;
+    return true;
   }
-  check_possible=()=>{
+  check_possible = () => {
     for (let i = 0; i < 9; i++) {
-      if(!this.row(i).check_possible()) return false;
+      if (!this.row(i).check_possible()) return false;
     }
     return true;
   }
@@ -161,38 +161,31 @@ class Sudoku {
     this.ranges = new Matrix(Array.from({ length: 9 }, (_, i) => new Vector((Array.from({ length: 9 }, (_, j) => {
       return this.rows.get(_range2(i, j)[0], _range2(i, j)[1]);
     })))));
+    this.fl_not_possible = false;
   }
 
-  test = () => {
-    console.log("test", this.rows.get(5, 4).getNum())
-    console.log("test", this.cols.get(4, 5).getNum())
-    console.log("test", this.ranges.get(4, 7).getNum())
-    let p = this.cols.get(4, 5);
-    p.setNum(5);
-    console.log("test", this.rows.get(5, 4).getNum())
-    console.log("test", this.cols.get(4, 5).getNum())
-    console.log("test", this.ranges.get(4, 7).getNum())
-  };
-  check_possible= () => {
-    return this.rows.check_possible() && this.cols.check_possible() && this.ranges.check_possible() ;
+  check_possible = () => {
+    return !this.fl_not_possible
+      && this.rows.check_possible()
+      && this.cols.check_possible()
+      && this.ranges.check_possible();
   }
   get_count = () => {
     let m = this.get_normalize();
     let count = 0;
-    for(let i in m) for(let j in m[i]) count+=((m[i][j]) ? 1 : 0);
+    for (let i in m) for (let j in m[i]) count += ((m[i][j]) ? 1 : 0);
     return count;
   }
   get_count_impossible = () => {
     let m = this.get_normalize();
     let count = 0;
-    console.log(this.rows.get(0, 0))
-    for(let i=0; i<9;i++) for(let j=0; j<9;j++){
+    for (let i = 0; i < 9; i++) for (let j = 0; j < 9; j++) {
       let p = this.rows.get(i, j)
-      count+=((p.getNum()) ? 9 : p.impossible().length);
-    } ;
+      count += ((p.getNum()) ? 9 : p.impossible().length);
+    };
     return count;
   }
-  
+
 
   get_normalize = () => Array.from({ length: 9 }, (_, i) =>
   (Array.from({ length: 9 }, (_, j) => {
@@ -223,9 +216,13 @@ class Sudoku {
   }
 
   impossible_pixels = () => {
+    try {
       this.rows.impossible_pixels();
       this.cols.impossible_pixels();
       this.ranges.impossible_pixels();
+    } catch (e) {
+      this.fl_not_possible = false;
+    }
   }
 
   last_hero = () => {
@@ -234,96 +231,103 @@ class Sudoku {
       this.cols.last_hero();
       this.ranges.last_hero();
     } catch (e) {
-      console.log("....", e);
+      this.fl_not_possible = false;
     }
+  }
+  notresolved = () => {
+    let r = [];
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        let p = this.rows.get(i, j);
+        if (!p.getNum()) {
+          r.push({
+            r: i,
+            c: j,
+            possible: p.possible(),
+          });
+        }
+      }
+    }
+    return r;
   }
 }
 
-// module.exports = function solveSudoku(matrix) {
-const solveSudoku = function (matrix) {
+module.exports = function solveSudoku(matrix) {
+  return solveRecursion(matrix);
+}
+const solveRecursion = function (matrix) {
   let mtrx = new Sudoku(matrix);
-
-  // mtrx.print_matrix();
-  // console.log(mtrx.get_count());
   let r;
   do {
-    r = false;
-    r = impossible_pixels(mtrx) || r;
-    console.log(mtrx.get_count());
-    console.log(mtrx.get_count_impossible());
-    r = last_hero(mtrx) || r;
-    mtrx.print_matrix();
-    console.log(mtrx.get_count());
-    console.log(mtrx.get_count_impossible());
-    console.log("check_possible",mtrx.check_possible());
-  } while (r);
-
-  // r = impossible_pixels(mtrx) || r;
-  // mtrx.print_matrix();
-  // console.log(mtrx.get_count());
-
-
-  // return mtrx.get_normalize();
-  return "mtrx.get_normalize()";
-}
-
-impossible_pixels = (mtrx) => {
-  let c = mtrx.get_count();
-  let count = 0;
-  do {
-    count = mtrx.get_count();
+    if (mtrx.get_count() == 81) return mtrx.get_normalize();
+    r = mtrx.get_count_impossible();
     mtrx.impossible_pixels();
-  } while (mtrx.get_count() > count);
-  return c != count;
-}
-
-last_hero = (mtrx) => {
-  let c = mtrx.get_count();
-  let count = 0;
-  do {    
-    count = mtrx.get_count();
     mtrx.last_hero();
-  } while (mtrx.get_count() > count);
-  return c != count;
+  } while (r != mtrx.get_count_impossible());
+  // mtrx.print_matrix();
+  if (mtrx.check_possible()) {
+    let notres = mtrx.notresolved();
+    let new_mtrx = mtrx.get_normalize();
+    for (let i in notres) {
+      for (let j in notres[i].possible) {
+        new_mtrx[notres[i].r][notres[i].c] = notres[i].possible[j]
+        let res = solveRecursion(new_mtrx);
+        if(res) return res;
+      }
+    }
+  }
+  return null;
 }
 
-console.log(solveSudoku(
+// console.log(solveRecursion(
+// [
+//   [0, 8, 0, 0, 0, 0, 0, 0, 1],
+//   [0, 0, 4, 3, 0, 0, 9, 8, 0],
+//   [3, 0, 1, 0, 0, 8, 7, 0, 0],
+//   [0, 1, 0, 5, 4, 0, 0, 6, 0],
+//   [0, 0, 0, 2, 9, 0, 4, 1, 0],
+//   [0, 4, 3, 0, 0, 6, 0, 9, 0],
+//   [0, 0, 8, 0, 0, 5, 0, 3, 0],
+//   [0, 6, 7, 0, 3, 9, 5, 0, 8],
+//   [1, 0, 5, 0, 8, 0, 0, 0, 0]
+// ]
+// ));
+//   [
+//     [0, 5, 0, 0, 7, 0, 0, 0, 1],
+//     [8, 7, 6, 0, 2, 1, 9, 0, 3],
+//     [0, 0, 0, 0, 3, 5, 0, 0, 0],
+//     [0, 0, 0, 0, 4, 3, 6, 1, 0],
+//     [0, 4, 0, 0, 0, 9, 0, 0, 2],
+//     [0, 1, 2, 0, 5, 0, 0, 0, 4],
+//     [0, 8, 9, 0, 6, 4, 0, 0, 0],
+//     [0, 0, 0, 0, 0, 7, 0, 0, 0],
+//     [1, 6, 7, 0, 0, 2, 5, 4, 0]
+//   ]
+// ));
   // [
-  //   [0, 5, 0, 0, 7, 0, 0, 0, 1],
-  //   [8, 7, 6, 0, 2, 1, 9, 0, 3],
-  //   [0, 0, 0, 0, 3, 5, 0, 0, 0],
-  //   [0, 0, 0, 0, 4, 3, 6, 1, 0],
-  //   [0, 4, 0, 0, 0, 9, 0, 0, 2],
-  //   [0, 1, 2, 0, 5, 0, 0, 0, 4],
-  //   [0, 8, 9, 0, 6, 4, 0, 0, 0],
-  //   [0, 0, 0, 0, 0, 7, 0, 0, 0],
-  //   [1, 6, 7, 0, 0, 2, 5, 4, 0]
+  //   [6, 5, 0, 7, 3, 0, 0, 8, 0],
+  //   [0, 0, 0, 4, 8, 0, 5, 3, 0],
+  //   [8, 4, 0, 9, 2, 5, 0, 0, 0],
+  //   [0, 9, 0, 8, 0, 0, 0, 0, 0],
+  //   [5, 3, 0, 2, 0, 9, 6, 0, 0],
+  //   [0, 0, 6, 0, 0, 0, 8, 0, 0],
+  //   [0, 0, 9, 0, 0, 0, 0, 0, 6],
+  //   [0, 0, 7, 0, 0, 0, 0, 5, 0],
+  //   [1, 6, 5, 3, 9, 0, 4, 7, 0]
   // ]
-  // ));
+// ));
   // [
-  //     [6, 5, 0, 7, 3, 0, 0, 8, 0],
-  //     [0, 0, 0, 4, 8, 0, 5, 3, 0],
-  //     [8, 4, 0, 9, 2, 5, 0, 0, 0],
-  //     [0, 9, 0, 8, 0, 0, 0, 0, 0],
-  //     [5, 3, 0, 2, 0, 9, 6, 0, 0],
-  //     [0, 0, 6, 0, 0, 0, 8, 0, 0],
-  //     [0, 0, 9, 0, 0, 0, 0, 0, 6],
-  //     [0, 0, 7, 0, 0, 0, 0, 5, 0],
-  //     [1, 6, 5, 3, 9, 0, 4, 7, 0]
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 4],
+  //     [0, 7, 5, 0, 0, 0, 0, 0, 0],
+  //     [0, 1, 6, 0, 0, 0, 0, 0, 0],
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //     [4, 0, 0, 0, 0, 0, 0, 0, 0]
   //   ]
   //   ));
-  [
-      [0, 0, 0, 0, 0, 0, 0, 0, 4],
-      [0, 7, 5, 0, 0, 0, 0, 0, 0],
-      [0, 1, 6, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [4, 0, 0, 0, 0, 0, 0, 0, 0]
-    ]
-    ));
 /* ->
   [5, 3, 4, 6, 7, 8, 9, 1, 2],
   [6, 7, 2, 1, 9, 5, 3, 4, 8],
